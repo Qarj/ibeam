@@ -214,7 +214,9 @@ def authenticate_gateway(driver_path,
                 if two_fa_code is None:
                     _LOGGER.warning(f'No 2FA code returned. Aborting authentication.')
                 else:
+                    time.sleep (3)
                     two_fa_el = driver.find_elements_by_id(var.TWO_FA_INPUT_EL_ID)
+                    two_fa_el[0].click()
                     two_fa_el[0].send_keys(two_fa_code)
 
                     _LOGGER.debug('Submitting the 2FA form')
