@@ -28,8 +28,16 @@ _LOGGER = logging.getLogger('ibeam.' + Path(__file__).stem)
 _DRIVER_NAMES = {}
 _FAILED_ATTEMPTS = 0
 
+def pause():
+    ignore_pause = True
+    if ignore_pause:
+        return
+    entry = input("Pausing, press <ENTER> to continue, q <ENTER> to quit...")
+    if entry == 'q':
+        print ('Quiting immediately.')
+        exit (1)
 
-def new_chrome_driver(driver_path, name: str = 'default', headless: bool = True):
+def new_chrome_driver(driver_path, name: str = 'default', headless: bool = False):
     """Creates a new chrome driver."""
 
     global _DRIVER_NAMES
@@ -41,13 +49,18 @@ def new_chrome_driver(driver_path, name: str = 'default', headless: bool = True)
     if headless:
         options.add_argument('--headless')
         options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--ignore-ssl-errors=yes')
-    options.add_argument('--ignore-certificate-errors')
-    options.add_argument(f'--remote-debugging-port={9222 + driver_index}')
-    options.add_argument('--useAutomationExtension=false')
+    options.add_argument('--disable-default-apps')
     options.add_argument('--disable-extensions')
     options.add_argument('--dns-prefetch-disable')
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--ignore-ssl-errors=yes')
+    options.add_argument('--no-experiments')
+    options.add_argument('--no-first-run')
+    options.add_argument('--no-initial-navigation')
+    options.add_argument('--no-sandbox')
+    # options.add_argument('--no-startup-window')
+    options.add_argument(f'--remote-debugging-port={9222 + driver_index}')
+    options.add_argument('--useAutomationExtension=false')
     options.add_argument(f'--user-data-dir={tempfile.gettempdir()}/ibeam-chrome-{name}')
     driver = webdriver.Chrome(driver_path, options=options)
     if driver is None:
@@ -149,7 +162,7 @@ def authenticate_gateway(driver_path,
     try:
         _LOGGER.debug(f'Loading auth webpage at {base_url + var.ROUTE_AUTH}')
         if sys.platform == 'linux':
-            display = Display(visible=0, size=(800, 600))
+            display = Display(visible=1, size=(800, 600))
             display.start()
 
         driver = start_driver(base_url, driver_path)
@@ -183,12 +196,16 @@ def authenticate_gateway(driver_path,
 
             password_el.send_keys(Keys.TAB)
 
+            pause()
+
             # small buffer to prevent race-condition on client side
             time.sleep(5)
             # submit the form
             _LOGGER.debug('Submitting the form')
             submit_form_el = driver.find_element_by_id(var.SUBMIT_EL_ID)
             submit_form_el.click()
+
+            pause()
 
             # observe results - either success or 2FA request
             success_present = text_to_be_present_in_element([(By.TAG_NAME, 'pre'), (By.TAG_NAME, 'body')],
@@ -211,16 +228,20 @@ def authenticate_gateway(driver_path,
 
                 two_fa_code = handle_two_fa(two_fa_handler)
 
+                pause()
+
                 if two_fa_code is None:
                     _LOGGER.warning(f'No 2FA code returned. Aborting authentication.')
                 else:
-                    time.sleep (3)
                     two_fa_el = driver.find_elements_by_id(var.TWO_FA_INPUT_EL_ID)
-                    two_fa_el[0].click()
+                    WebDriverWait(driver, var.OAUTH_TIMEOUT).until(
+                        EC.element_to_be_clickable((By.ID, var.TWO_FA_INPUT_EL_ID)))
                     two_fa_el[0].send_keys(two_fa_code)
 
                     _LOGGER.debug('Submitting the 2FA form')
                     submit_form_el = driver.find_element_by_id(var.SUBMIT_EL_ID)
+                    WebDriverWait(driver, var.OAUTH_TIMEOUT).until(
+                        EC.element_to_be_clickable((By.ID, var.SUBMIT_EL_ID)))
                     submit_form_el.click()
 
                     trigger = WebDriverWait(driver, var.OAUTH_TIMEOUT).until(any_of(success_present, error_displayed))

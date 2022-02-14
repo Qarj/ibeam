@@ -66,13 +66,26 @@ class GoogleMessagesTwoFaHandler(TwoFaHandler):
         sms_list_el = driver_2fa.find_elements_by_css_selector(_GOOG_MESSAGES_LIST_CLASS)
 
         if not sms_list_el:
-            _LOGGER.error('Timeout or authentication error while loading sms messages.')
+            _LOGGER.error('Timeout or authentication error while loading SMS messages.')
             save_screenshot(driver_2fa, postfix='__google_2fa')
         else:
             _LOGGER.info(sms_list_el[0].text)
-            sms_list_el[0].click()  # mark message as read
-            time.sleep(2)  # wait for click to mark message as read
             code_two_fa = re.search(r'(\d+)', sms_list_el[0].text).group(1)
+            _LOGGER.debug('Waiting for the message to be visible.')
+            WebDriverWait(driver_2fa, 30).until(EC.visibility_of(sms_list_el[0]))
+            clicked_ok = False
+            for _ in range(5):
+                try:
+                    sms_list_el[0].click()  # mark message as read
+                    clicked_ok = True
+                    _LOGGER.debug('Clicked message to mark as read OK.')
+                    break
+                except:
+                    _LOGGER.debug('Failed to mark SMS message as read.')
+                    time.sleep (2)
+            if not clicked_ok:
+                _LOGGER.warning('Failed all attempts to mark SMS message as read.')
+            time.sleep(2)  # wait for click to mark message as read
 
         release_chrome_driver(driver_2fa)
 

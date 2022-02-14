@@ -72,5 +72,7 @@ export IBEAM_MAX_IMMEDIATE_ATTEMPTS=2
 export IBEAM_TWO_FA_HANDLER=GOOGLE_MSG
 export IBEAM_GATEWAY_DIR=$HOME/git/ibeam/copy_cache/clientportal.gw
 export IBEAM_CHROME_DRIVER_PATH=/usr/local/bin/selenium/chromedriver
+export IBEAM_LOG_LEVEL=DEBUG
+export IBEAM_ERROR_SCREENSHOTS=True
 python3 $HOME/git/ibeam/ibeam/ibeam_starter.py
 ```
