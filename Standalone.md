@@ -76,3 +76,15 @@ export IBEAM_LOG_LEVEL=DEBUG
 export IBEAM_ERROR_SCREENSHOTS=True
 python3 $HOME/git/ibeam/ibeam/ibeam_starter.py
 ```
+
+# Build Docker image
+
+```
+docker build --tag qarj/ibeam:2fafix .
+```
+
+# Add to startup
+
+```
+lxterminal --command="/bin/bash -c 'docker start --attach ibeam; echo ibeam has ended...; read'"
+```

@@ -10,7 +10,8 @@ ENV PATH="/opt/venv/bin:$PATH" \
     OUTPUTS_DIR="/srv/outputs" \
     IBEAM_GATEWAY_DIR="/srv/clientportal.gw" \
     IBEAM_CHROME_DRIVER_PATH="/usr/bin/chromedriver" \
-    PYTHONPATH="${PYTHONPATH}:/srv:/srv/ibeam"
+    PYTHONPATH="${PYTHONPATH}:/srv:/srv/ibeam" \
+    DISPLAY=:0
 
 COPY requirements.txt /srv/requirements.txt
 
@@ -25,7 +26,8 @@ RUN \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y default-jre dbus-x11 xfonts-base xfonts-100dpi \
         xfonts-75dpi xfonts-cyrillic xfonts-scalable xorg xvfb gtk2-engines-pixbuf nano curl iputils-ping \
-        chromium chromium-driver build-essential && \
+        chromium chromium-driver build-essential \
+        xserver-xephyr && \
     # Install python packages
     pip install --upgrade pip setuptools wheel && \
     pip install -r /srv/requirements.txt && \
