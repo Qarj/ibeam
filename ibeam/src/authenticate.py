@@ -162,7 +162,7 @@ def authenticate_gateway(driver_path,
     try:
         _LOGGER.debug(f'Loading auth webpage at {base_url + var.ROUTE_AUTH}')
         if sys.platform == 'linux':
-            display = Display(visible=1, size=(800, 600))
+            display = Display(visible=0, size=(1024, 768))
             display.start()
 
         driver = start_driver(base_url, driver_path)

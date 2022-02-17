@@ -10,8 +10,9 @@ ENV PATH="/opt/venv/bin:$PATH" \
     OUTPUTS_DIR="/srv/outputs" \
     IBEAM_GATEWAY_DIR="/srv/clientportal.gw" \
     IBEAM_CHROME_DRIVER_PATH="/usr/bin/chromedriver" \
-    PYTHONPATH="${PYTHONPATH}:/srv:/srv/ibeam" \
-    DISPLAY=:0
+    PYTHONPATH="${PYTHONPATH}:/srv:/srv/ibeam"
+
+EXPOSE 5900
 
 COPY requirements.txt /srv/requirements.txt
 
@@ -27,13 +28,17 @@ RUN \
     DEBIAN_FRONTEND=noninteractive apt-get install -y default-jre dbus-x11 xfonts-base xfonts-100dpi \
         xfonts-75dpi xfonts-cyrillic xfonts-scalable xorg xvfb gtk2-engines-pixbuf nano curl iputils-ping \
         chromium chromium-driver build-essential \
-        xserver-xephyr && \
+        xserver-xephyr x11vnc x11-apps && \
     # Install python packages
     pip install --upgrade pip setuptools wheel && \
     pip install -r /srv/requirements.txt && \
     # Remove packages and package lists
     apt-get purge -y --auto-remove build-essential && \
     rm -rf /var/lib/apt/lists/*
+
+RUN \
+    mkdir ~/.vnc && \
+    x11vnc -storepasswd 1234 ~/.vnc/passwd
 
 COPY copy_cache/clientportal.gw $IBEAM_GATEWAY_DIR
 COPY ibeam $SRC_ROOT
