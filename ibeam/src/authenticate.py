@@ -210,11 +210,12 @@ def authenticate_gateway(driver_path,
             # observe results - either success or 2FA request
             success_present = text_to_be_present_in_element([(By.TAG_NAME, 'pre'), (By.TAG_NAME, 'body')],
                                                             var.SUCCESS_EL_TEXT)
+            ibkey_promo_skip_displayed = EC.visibility_of_element_located((By.CSS_SELECTOR, 'a.ibkey-promo-skip'))
             two_factor_input_present = EC.visibility_of_element_located((By.ID, var.TWO_FA_EL_ID))
             error_displayed = EC.visibility_of_element_located((By.ID, var.ERROR_EL_ID))
 
             trigger = WebDriverWait(driver, var.OAUTH_TIMEOUT).until(
-                any_of(success_present, two_factor_input_present, error_displayed))
+                            any_of(success_present, two_factor_input_present, error_displayed, ibkey_promo_skip_displayed))
 
             trigger_id = trigger.get_attribute('id')
 
